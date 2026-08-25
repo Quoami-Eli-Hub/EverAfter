@@ -1,0 +1,16 @@
+"use server";
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+export async function createEvent(formData: FormData) {
+  await requireUser();
+  const eventType=String(formData.get("eventType")??"");
+  const title=String(formData.get("title")??"").trim();
+  const slug=String(formData.get("slug")??"").trim().toLowerCase();
+  const eventDate=String(formData.get("eventDate")??"")||undefined;
+  if(!["wedding","memorial"].includes(eventType)||title.length<3||!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) redirect("/onboarding?message=Please+complete+all+fields+and+use+a+simple+link");
+  const supabase=await createClient();
+  const {error}=await supabase.rpc("create_event",{p_event_type:eventType,p_title:title,p_slug:slug,p_event_date:eventDate});
+  if(error){const message=error.code==="23505"?"That+page+link+is+already+taken":encodeURIComponent(error.message);redirect(`/onboarding?message=${message}`)}
+  redirect("/dashboard");
+}

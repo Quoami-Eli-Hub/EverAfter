@@ -1,0 +1,3 @@
+import type {MetadataRoute} from "next";
+import {createClient} from "@/lib/supabase/server";
+export default async function sitemap():Promise<MetadataRoute.Sitemap>{const base=process.env.NEXT_PUBLIC_SITE_URL??"http://localhost:3000";const supabase=await createClient();const{data}=await supabase.from("events").select("slug,updated_at").eq("status","published").eq("visibility","public");return[{url:base,lastModified:new Date(),changeFrequency:"monthly",priority:1},...(data??[]).map(e=>({url:`${base}/${e.slug}`,lastModified:new Date(e.updated_at),changeFrequency:"weekly" as const,priority:.8}))]}

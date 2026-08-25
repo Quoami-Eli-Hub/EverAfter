@@ -1,0 +1,3 @@
+"use client";
+import {useState} from "react";
+export function CopyLinkButton({path}:{path:string}){const[copied,setCopied]=useState(false);async function copy(){const value=`${window.location.origin}${path}`;try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(value);else{const input=document.createElement("textarea");input.value=value;input.style.position="fixed";input.style.opacity="0";document.body.appendChild(input);input.select();document.execCommand("copy");input.remove()}setCopied(true);setTimeout(()=>setCopied(false),1800)}catch{window.prompt("Copy your event link:",value)}}return <button type="button" onClick={copy}>{copied?"Copied!":"Copy"}</button>}
