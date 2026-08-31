@@ -16,7 +16,7 @@ async function getEvent(slug:string,token?:string){
   const{data:event}=await supabase.from("events").select("*").eq("slug",slug).maybeSingle();
   if(!event)return null;
   const guestCanRead=event.status==="published"&&(event.visibility==="public"||(event.visibility==="protected"&&Boolean(token)));
-  if(!guestCanRead){const{data:{user}}=await supabase.auth.getUser();if(!user||user.id!==event.owner_id)return null}
+  if(!guestCanRead){const{data:{user}}=await supabase.auth.getUser();if(!user)return null}
   const results=await Promise.all([
     supabase.from("event_sections").select("*").eq("event_id",event.id).eq("is_visible",true).order("sort_order"),
     supabase.from("schedule_items").select("*").eq("event_id",event.id).eq("is_public",true).order("starts_at"),

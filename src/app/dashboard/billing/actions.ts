@@ -5,12 +5,14 @@ import {revalidatePath} from "next/cache";
 import type {SupabaseClient} from "@supabase/supabase-js";
 import {requireUser} from "@/lib/auth";
 import {createClient} from "@/lib/supabase/server";
+import {getOwnerEvent} from "@/lib/event-owner";
 
 const siteUrl=()=>process.env.NEXT_PUBLIC_SITE_URL??"http://localhost:3000";
 const billingUrl=(message:string)=>`/dashboard/billing?message=${encodeURIComponent(message)}`;
 
 export async function beginCheckout(form:FormData){
   const user=await requireUser();
+  const{event,role}=await getOwnerEvent();if(role!=="owner")redirect(billingUrl("Only the event owner can start a payment."));
   if(process.env.PAYMENTS_ENABLED!=="true")redirect(billingUrl("Checkout is ready but not activated. Add merchant credentials and enable payments."));
   const purpose=String(form.get("purpose"));const product=String(form.get("product"));const currency=String(form.get("currency"));
   if(!["event_plan","storage_addon"].includes(purpose)||![/^(starter|premium)$/.test(product),/^storage_(5gb|20gb)$/.test(product)].some(Boolean)||!["GHS","USD"].includes(currency))redirect(billingUrl("That purchase option is not available."));
@@ -18,7 +20,7 @@ export async function beginCheckout(form:FormData){
   const providerSecret=provider==="paystack"?process.env.PAYSTACK_SECRET_KEY:process.env.FLUTTERWAVE_SECRET_KEY;
   if(!providerSecret)redirect(billingUrl(`${provider==="paystack"?"Paystack":"Flutterwave"} is not configured.`));
   const supabase=await createClient();const db=supabase as unknown as SupabaseClient;
-  const{data:order,error}=await db.rpc("create_payment_order",{p_purpose:purpose,p_product_code:product,p_currency:currency,p_provider:provider});
+  const{data:order,error}=await db.rpc("create_payment_order",{p_event_id:event.id,p_purpose:purpose,p_product_code:product,p_currency:currency,p_provider:provider});
   if(error||!order?.provider_reference)redirect(billingUrl(error?.message??"The payment order could not be created."));
   const reference=String(order.provider_reference),amount=Number(order.amount);let checkoutUrl:string|undefined;
   if(provider==="paystack"){
@@ -34,16 +36,16 @@ export async function beginCheckout(form:FormData){
 
 function normalizeHostname(value:string){return value.trim().toLowerCase().replace(/^https?:\/\//,"").replace(/\/.*$/,"").replace(/\.$/,"")}
 export async function requestCustomDomain(form:FormData){
-  const user=await requireUser();const hostname=normalizeHostname(String(form.get("hostname")??""));
+  await requireUser();const hostname=normalizeHostname(String(form.get("hostname")??""));
   if(!/^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(hostname)||hostname.includes("everafter"))redirect(billingUrl("Enter a valid domain you own, such as celebration.com."));
-  const supabase=await createClient();const db=supabase as unknown as SupabaseClient;const{data:event}=await db.from("events").select("id,plan_code").eq("owner_id",user.id).maybeSingle();
+  const{db,event,role}=await getOwnerEvent();if(role!=="owner")redirect(billingUrl("Only the event owner can manage billing and domains."));
   if(!event||event.plan_code!=="premium")redirect(billingUrl("A Premium plan is required for a custom domain."));
   const token=`everafter-verification=${randomBytes(18).toString("hex")}`;const{error}=await db.from("custom_domains").upsert({event_id:event.id,hostname,status:"pending",verification_token:token,verified_at:null},{onConflict:"event_id"});
   if(error)redirect(billingUrl(error.message));revalidatePath("/dashboard/billing");redirect(billingUrl("Domain saved. Add the DNS records shown below, then verify it."));
 }
 
 export async function verifyCustomDomain(){
-  const user=await requireUser();const supabase=await createClient();const db=supabase as unknown as SupabaseClient;const{data:event}=await db.from("events").select("id,plan_code").eq("owner_id",user.id).maybeSingle();
+  await requireUser();const{db,event,role}=await getOwnerEvent();if(role!=="owner")redirect(billingUrl("Only the event owner can manage billing and domains."));
   if(!event||event.plan_code!=="premium")redirect(billingUrl("Premium access is required."));
   const{data:domain}=await db.from("custom_domains").select("*").eq("event_id",event.id).maybeSingle();if(!domain)redirect(billingUrl("Add a domain first."));
   const dns=await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(`_everafter.${domain.hostname}`)}&type=TXT`,{headers:{Accept:"application/dns-json"},cache:"no-store"});

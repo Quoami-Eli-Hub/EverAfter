@@ -1,4 +1,4 @@
-# EverAfter V0
+# EverAfter
 
 A navigable product and design prototype for a multi-tenant wedding and funeral/memorial event-page platform.
 
@@ -17,12 +17,13 @@ V1 is connected to the Supabase project `event-platform` and includes:
 
 - Email/password and Google OAuth application flows
 - Cookie-based SSR sessions and protected owner routes
-- One-account/one-event database enforcement
+- Multi-event workspaces with owner, planner, contributor and viewer memberships
 - Atomic event onboarding with wedding or memorial section creation
 - Live owner dashboard data
 - Dynamic public event URLs and RSVP persistence
 - Row-Level Security on every exposed application table
-- Private, owner-scoped event media storage
+- Private, membership-scoped event media storage
+- Public-event discovery adverts that exclude private, protected and unpublished pages
 
 Google OAuth still requires valid Google provider credentials and redirect URLs in the Supabase dashboard before it can complete external sign-in.
 
@@ -61,6 +62,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Add these variables under **Project settings → Environment Variables** for Production, Preview and Development, then redeploy:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+NEXT_PUBLIC_SUPABASE_URL=https://knkluiwjwvkdqtndyduk.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<Supabase publishable key>
+NEXT_PUBLIC_SITE_URL=https://<your-production-domain>
+NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=false
+PAYMENTS_ENABLED=false
+```
+
+`SUPABASE_SECRET_KEY` is needed only for administrative server operations. Never expose it with a `NEXT_PUBLIC_` prefix. Payment and custom-domain secrets can remain unset while those features are disabled.
