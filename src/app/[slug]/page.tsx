@@ -2,7 +2,7 @@ import type {Metadata} from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {notFound} from "next/navigation";
-import {cookies} from "next/headers";
+import {cookies,headers} from "next/headers";
 import {eventAccessCookie} from "@/lib/event-access";
 import {createClient,createEventAccessClient} from "@/lib/supabase/server";
 import {submitRsvp,submitTribute,unlockEvent} from "./actions";
@@ -48,7 +48,11 @@ export default async function PublicEventPage({params,searchParams}:Props){
   const formattedDate=weddingDate?new Intl.DateTimeFormat("en-GB",{day:"numeric",month:"long",year:"numeric"}).format(weddingDate):"Date to be confirmed";
   const primaryVenue=venues[0];
   const infoKeys=(memorial?["family","directions","dress_code","donations","contact"]:["dress_code","accommodation","travel","gift_registry","contact"]).filter(key=>body(key));
-  const shareText=encodeURIComponent(`${event.title} · ${formattedDate} · ${process.env.NEXT_PUBLIC_SITE_URL??"http://localhost:3000"}/${slug}`);
+  const requestHeaders=await headers();
+  const requestHost=requestHeaders.get("x-forwarded-host")??requestHeaders.get("host");
+  const requestProtocol=requestHeaders.get("x-forwarded-proto")??(requestHost?.startsWith("localhost")?"http":"https");
+  const siteOrigin=requestHost?`${requestProtocol}://${requestHost}`:(process.env.NEXT_PUBLIC_SITE_URL??"http://localhost:3000");
+  const shareText=encodeURIComponent(`${event.title} · ${formattedDate} · ${siteOrigin}/${slug}`);
 
   const localShowcase=!memorial?event.id===8?{hero:"/events/quoami-harry/hero.png",story:"/events/quoami-harry/story.png",reception:"/events/quoami-harry/reception.png"}:event.id===5?{hero:"/showcase/wedding-hero.png",story:"/showcase/wedding-story.png",reception:"/showcase/wedding-reception.png"}:null:null;
   const showcase=Boolean(localShowcase);
