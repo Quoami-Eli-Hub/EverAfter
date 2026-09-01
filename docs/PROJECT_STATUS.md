@@ -2,7 +2,7 @@
 
 ## Implemented baseline
 
-- One authenticated owner per event, email/password and Google OAuth flow.
+- Multi-event accounts with owner, planner, contributor and viewer access roles; email/password and Google OAuth flows.
 - Wedding and memorial onboarding, public slug pages, editable content, schedules and venues.
 - RSVP collection with phone, party size, notes, deadlines, check-in and CSV endpoint.
 - Owner-only image uploads, albums, per-photo/album download controls and private storage.
@@ -15,6 +15,7 @@
 - V3 commercial dashboard with one-time Starter/Premium plans, GHS Paystack checkout, USD Flutterwave checkout, signed and re-verified webhooks, storage add-ons, payment history, Premium-only templates, branding removal and DNS-verified custom-domain requests.
 - Password-protected visitor pages with bcrypt password hashes, 24-hour opaque access tokens and no search indexing.
 - Original local placeholder photography for the landing page and both event demonstrations.
+- Mobile dashboard navigation, editor unsaved-change protection, production legal pages and responsive layout polish.
 
 ## External activation required
 
