@@ -21,7 +21,7 @@ export async function beginCheckout(form:FormData){
   if(!providerSecret)redirect(billingUrl(`${provider==="paystack"?"Paystack":"Flutterwave"} is not configured.`));
   const supabase=await createClient();const db=supabase as unknown as SupabaseClient;
   const{data:order,error}=await db.rpc("create_payment_order",{p_event_id:event.id,p_purpose:purpose,p_product_code:product,p_currency:currency,p_provider:provider});
-  if(error||!order?.provider_reference)redirect(billingUrl(error?.message??"The payment order could not be created."));
+  if(error||!order?.provider_reference)redirect(billingUrl("We couldn’t prepare your payment. Please try again in a moment."));
   const reference=String(order.provider_reference),amount=Number(order.amount);let checkoutUrl:string|undefined;
   if(provider==="paystack"){
     const response=await fetch("https://api.paystack.co/transaction/initialize",{method:"POST",headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify({email:user.email,amount:Math.round(amount*100),currency:"GHS",reference,channels:["card","mobile_money"],callback_url:`${siteUrl()}/api/payments/paystack/callback`,metadata:{order_id:order.id,purpose,product}})});
@@ -41,7 +41,7 @@ export async function requestCustomDomain(form:FormData){
   const{db,event,role}=await getOwnerEvent();if(role!=="owner")redirect(billingUrl("Only the event owner can manage billing and domains."));
   if(!event||event.plan_code!=="premium")redirect(billingUrl("A Premium plan is required for a custom domain."));
   const token=`everafter-verification=${randomBytes(18).toString("hex")}`;const{error}=await db.from("custom_domains").upsert({event_id:event.id,hostname,status:"pending",verification_token:token,verified_at:null},{onConflict:"event_id"});
-  if(error)redirect(billingUrl(error.message));revalidatePath("/dashboard/billing");redirect(billingUrl("Domain saved. Add the DNS records shown below, then verify it."));
+  if(error)redirect(billingUrl("We couldn’t save this domain. Check that it is not already connected to another event, then try again."));revalidatePath("/dashboard/billing");redirect(billingUrl("Domain saved. Add the DNS records shown below, then verify it."));
 }
 
 export async function verifyCustomDomain(){
@@ -53,5 +53,5 @@ export async function verifyCustomDomain(){
   if(!verified)redirect(billingUrl("DNS verification was not found yet. Changes can take several hours."));
   let status="verified";const vercelToken=process.env.VERCEL_API_TOKEN,projectId=process.env.VERCEL_PROJECT_ID,teamId=process.env.VERCEL_TEAM_ID;
   if(vercelToken&&projectId){const response=await fetch(`https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/domains${teamId?`?teamId=${encodeURIComponent(teamId)}`:""}`,{method:"POST",headers:{Authorization:`Bearer ${vercelToken}`,"Content-Type":"application/json"},body:JSON.stringify({name:domain.hostname})});if(response.ok)status="active";}
-  const{error}=await db.from("custom_domains").update({status,verified_at:new Date().toISOString()}).eq("id",domain.id);if(error)redirect(billingUrl(error.message));revalidatePath("/dashboard/billing");redirect(billingUrl(status==="active"?"Your custom domain is active.":"Domain ownership verified. Hosting activation is awaiting production configuration."));
+  const{error}=await db.from("custom_domains").update({status,verified_at:new Date().toISOString()}).eq("id",domain.id);if(error)redirect(billingUrl("Your domain was verified, but we couldn’t save its status. Please try again."));revalidatePath("/dashboard/billing");redirect(billingUrl(status==="active"?"Your custom domain is active.":"Domain ownership verified. Hosting activation is awaiting production configuration."));
 }

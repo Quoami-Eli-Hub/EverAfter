@@ -38,14 +38,14 @@ export function MediaUploader({eventId,userId,albums}:{eventId:number;userId:str
       setState("uploading");
       setMessage(`Uploading ${file.name}… Keep this page open.`);
       const{error:uploadError}=await supabase.storage.from("event-media").upload(path,file,{contentType:file.type,cacheControl:"3600",upsert:false});
-      if(uploadError)throw new Error(uploadError.message);
+      if(uploadError)throw new Error("upload");
 
       setState("saving");
       setMessage("Photo uploaded. Adding it to your gallery…");
       const{error:recordError}=await supabase.from("media").insert({event_id:eventId,album_id:albumId,storage_path:path,media_type:"image",mime_type:file.type,original_name:file.name,byte_size:file.size,caption:String(formData.get("caption")??"").trim()||null,allow_download:formData.get("allowDownload")==="on"});
       if(recordError){
         await supabase.storage.from("event-media").remove([path]);
-        throw new Error(recordError.message);
+        throw new Error("record");
       }
 
       setState("success");
@@ -55,7 +55,7 @@ export function MediaUploader({eventId,userId,albums}:{eventId:number;userId:str
       router.refresh();
     }catch(error){
       setState("error");
-      setMessage(error instanceof Error?`Upload failed: ${error.message}`:"Upload failed. Check your connection and try again.");
+      setMessage(error instanceof Error&&error.message==="record"?"The photo uploaded, but could not be added to your gallery. Please try again.":"We couldn’t upload this photo. Check your connection and try again.");
     }
   }
 

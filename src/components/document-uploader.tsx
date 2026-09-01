@@ -19,9 +19,9 @@ export function DocumentUploader({eventId,userId}:{eventId:number;userId:string}
     const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"-");
     const path=`${userId}/${eventId}/documents/${crypto.randomUUID()}-${safe}`;
     const {error:uploadError}=await supabase.storage.from("event-media").upload(path,file,{contentType:file.type,upsert:false});
-    if(uploadError){setMessage(uploadError.message);setBusy(false);return}
+    if(uploadError){setMessage("We couldn’t upload this document. Check your connection and try again.");setBusy(false);return}
     const {error}=await supabase.from("documents").insert({event_id:eventId,storage_path:path,document_type:String(formData.get("documentType")??"funeral_program"),title,mime_type:file.type,byte_size:file.size,allow_download:formData.get("allowDownload")==="on"});
-    if(error){await supabase.storage.from("event-media").remove([path]);setMessage(error.message)}else{setMessage("Document uploaded.");router.refresh()}
+    if(error){await supabase.storage.from("event-media").remove([path]);setMessage("The document uploaded, but could not be added to the event. Please try again.")}else{setMessage("Your document has been uploaded and added to the event.");router.refresh()}
     setBusy(false);
   }
 

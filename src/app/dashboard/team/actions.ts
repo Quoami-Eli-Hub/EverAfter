@@ -10,7 +10,7 @@ export async function addCollaborator(form:FormData){
   const memberRole=String(form.get("role")??"");
   if(!email.includes("@")||!["planner","contributor","viewer"].includes(memberRole))redirect("/dashboard/team?message=Enter+a+valid+email+and+role");
   const{error}=await db.rpc("add_event_member",{p_event_id:event.id,p_email:email,p_role:memberRole});
-  if(error)redirect(`/dashboard/team?message=${encodeURIComponent(error.message)}`);
+  if(error)redirect(`/dashboard/team?message=${encodeURIComponent(error.message.toLowerCase().includes("not found")?"No EverAfter account was found for that email. Ask them to register first.":"We couldn’t add this collaborator. Please check the email and try again.")}`);
   revalidatePath("/dashboard/team");redirect("/dashboard/team?message=added");
 }
 
@@ -19,6 +19,6 @@ export async function removeCollaborator(form:FormData){
   if(role!=="owner")redirect("/dashboard/team?message=Only+the+event+owner+can+manage+the+team");
   const userId=String(form.get("userId")??"");
   const{error}=await db.rpc("remove_event_member",{p_event_id:event.id,p_user_id:userId});
-  if(error)redirect(`/dashboard/team?message=${encodeURIComponent(error.message)}`);
+  if(error)redirect("/dashboard/team?message=We+couldn’t+remove+this+collaborator.+Please+try+again");
   revalidatePath("/dashboard/team");redirect("/dashboard/team?message=removed");
 }
