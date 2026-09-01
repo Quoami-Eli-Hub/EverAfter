@@ -1,10 +1,15 @@
 "use server";
 
-import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {createClient} from "@/lib/supabase/server";
 
 const notice=(path:string,message:string,tone:"error"|"success"|"info"="error")=>`${path}${path.includes("?")?"&":"?"}message=${encodeURIComponent(message)}&tone=${tone}`;
+const siteUrl=()=>{
+  const configured=process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if(configured)return configured.replace(/\/$/,"");
+  const vercelHost=process.env.VERCEL_PROJECT_PRODUCTION_URL??process.env.VERCEL_URL;
+  return vercelHost?`https://${vercelHost}`:"http://localhost:3000";
+};
 
 function credentials(formData:FormData){
   const email=String(formData.get("email")??"").trim().toLowerCase();
@@ -37,8 +42,7 @@ export async function signUp(formData:FormData){
   const{email,password}=credentials(formData);
   const displayName=String(formData.get("displayName")??"").trim();
   if(displayName.length<2)redirect(notice("/login?mode=signup","Please enter the name you would like us to use."));
-  const origin=(await headers()).get("origin")??"http://localhost:3000";
-  const{data,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:displayName},emailRedirectTo:`${origin}/auth/callback?next=/onboarding`}});
+  const{data,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:displayName},emailRedirectTo:`${siteUrl()}/auth/callback?next=/onboarding`}});
   if(error)redirect(notice("/login?mode=signup",friendlyAuthError(error.message,"signup")));
   if(!data.session)redirect(notice("/login","Check your inbox and confirm your email address to finish creating your account.","success"));
   redirect("/onboarding");
@@ -47,8 +51,7 @@ export async function signUp(formData:FormData){
 export async function signInWithGoogle(){
   if(process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED!=="true")redirect(notice("/login","Google sign-in is not available yet. Please continue with your email and password.","info"));
   const supabase=await createClient();
-  const origin=(await headers()).get("origin")??"http://localhost:3000";
-  const{data,error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:`${origin}/auth/callback?next=/onboarding`}});
+  const{data,error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:`${siteUrl()}/auth/callback?next=/onboarding`}});
   if(error||!data.url)redirect(notice("/login","Google sign-in could not start. Please use your email and password or try again shortly."));
   redirect(data.url);
 }
@@ -58,8 +61,8 @@ export async function signOut(){const supabase=await createClient();await supaba
 export async function requestPasswordReset(formData:FormData){
   const email=String(formData.get("email")??"").trim().toLowerCase();
   if(!email.includes("@"))redirect(notice("/forgot-password","Enter the email address connected to your account."));
-  const supabase=await createClient();const origin=(await headers()).get("origin")??"http://localhost:3000";
-  await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${origin}/auth/callback?next=/reset-password`});
+  const supabase=await createClient();
+  await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${siteUrl()}/auth/callback?next=/reset-password`});
   redirect(notice("/forgot-password","If an account matches that email, a secure reset link is on its way.","success"));
 }
 
