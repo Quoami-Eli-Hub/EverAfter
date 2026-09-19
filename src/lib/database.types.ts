@@ -222,6 +222,7 @@ export type Database = {
           status: string
           storage_limit_bytes: number
           storage_used_bytes: number
+          invitation_cover: Json
           theme_key: string
           timezone: string
           title: string
@@ -249,6 +250,7 @@ export type Database = {
           status?: string
           storage_limit_bytes?: number
           storage_used_bytes?: number
+          invitation_cover?: Json
           theme_key?: string
           timezone?: string
           title: string
@@ -276,6 +278,7 @@ export type Database = {
           status?: string
           storage_limit_bytes?: number
           storage_used_bytes?: number
+          invitation_cover?: Json
           theme_key?: string
           timezone?: string
           title?: string

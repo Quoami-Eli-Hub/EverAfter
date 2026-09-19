@@ -1,3 +1,6 @@
+import {InvitationEditor} from "@/components/invitation-editor";
+import {invitationDate} from "@/lib/invitation";
+import "../../[slug]/public-event.css";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { getOwnerEvent } from "@/lib/event-owner";
 import { clearEventPassword, setEventPassword, updateEvent } from "../actions";
@@ -5,7 +8,7 @@ import {AppearancePicker} from "@/components/appearance-picker";
 import "./appearance.css";
 
 export default async function Settings({searchParams}:{searchParams:Promise<{password?:string;message?:string}>}) {
-  const { event } = await getOwnerEvent();
+  const { event, role } = await getOwnerEvent();
   const query = await searchParams;
   return <div className="app-shell"><DashboardNav active="Settings"/><main className="app-main">
     <div className="page-heading"><div><p className="eyebrow">Publishing, design & privacy</p><h1>Event settings</h1><p>Public pages can be indexed. Protected and private pages are excluded.</p></div></div>
@@ -26,5 +29,6 @@ export default async function Settings({searchParams}:{searchParams:Promise<{pas
     </form>
       <aside className="panel password-panel"><p className="eyebrow">Protected access</p><h2>Event password</h2><p>Set a password before selecting Password protected. Guests receive a secure 24-hour access token after unlocking the page.</p>{query.password&&<div className={query.password==="saved"||query.password==="cleared"?"rsvp-success":"auth-message"}>{query.password==="saved"?"Password saved.":query.password==="cleared"?"Password removed and page made private.":"Passwords must match and contain 8–128 characters."}</div>}<form action={setEventPassword} className="manage-form"><input name="password" type="password" minLength={8} maxLength={128} required placeholder="New event password" autoComplete="new-password"/><input name="confirm" type="password" minLength={8} maxLength={128} required placeholder="Confirm password" autoComplete="new-password"/><button className="button button-dark">Set event password</button></form><form action={clearEventPassword}><button className="text-danger">Remove password and make private</button></form></aside>
     </div>
+    {event.event_type === "wedding" && <InvitationEditor initial={event.invitation_cover} names={event.title} date={invitationDate(event.event_date)} palette={event.color_key} font={event.font_key} eventId={event.id} canEdit={["owner","planner"].includes(role)}/>}
   </main></div>;
 }

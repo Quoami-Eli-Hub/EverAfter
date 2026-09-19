@@ -1,3 +1,5 @@
+import {InvitationCover} from "@/components/invitation-cover";
+import {invitationSettings} from "@/lib/invitation";
 import type {Metadata} from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -60,12 +62,13 @@ export default async function PublicEventPage({params,searchParams}:Props){
   const storyUrl=media[1]?.url??localShowcase?.story??null;
 
   return <main className={`live-event live-${memorial?"memorial":"wedding"} theme-${event.theme_key} palette-${event.color_key} font-${event.font_key}`}>
+    {!memorial && !query.rsvp && !query.tribute && <InvitationCover settings={invitationSettings(event.invitation_cover)} names={event.title} date={formattedDate} slug={slug}/>}
     <header className="live-nav"><Link href="/">EverAfter</Link><nav><a href="#story">Story</a><a href="#programme">Programme</a>{(media.length>0||!memorial)&&<a href="#gallery">Gallery</a>}<a href="#messages">{memorial?"Tributes":"Congratulations"}</a></nav><a className="nav-rsvp" href="#rsvp">RSVP</a></header>
 
     <section className="live-hero">
       {heroUrl&&<Image className="live-hero-image" src={heroUrl} alt={media[0]?.caption||media[0]?.original_name||"Event cover photograph"} fill priority sizes="100vw"/>}
       <div className="hero-shade"/>
-      <div className="hero-content"><p>{memorial?"IN LOVING MEMORY":"SAVE THE DATE"}</p><h1>{event.title}</h1><span>{formattedDate}{primaryVenue?` · ${primaryVenue.name}`:""}</span><div className="hero-actions"><a href="#programme">Explore the day</a>{event.rsvp_enabled&&!rsvpClosed&&<a className="hero-primary" href="#rsvp">Confirm attendance</a>}</div></div>
+      <div className="hero-content"><p>{memorial?"IN LOVING MEMORY":"SAVE THE DATE"}</p><h1 tabIndex={-1}>{event.title}</h1><span>{formattedDate}{primaryVenue?` · ${primaryVenue.name}`:""}</span><div className="hero-actions"><a href="#programme">Explore the day</a>{event.rsvp_enabled&&!rsvpClosed&&<a className="hero-primary" href="#rsvp">Confirm attendance</a>}</div></div>
       <a className="hero-scroll" href="#story">Scroll to discover <span>↓</span></a>
     </section>
 
