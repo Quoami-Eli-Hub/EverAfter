@@ -40,7 +40,9 @@
 .story-copy>p:not(.event-kicker),.story-copy blockquote,.section-heading>p:last-child,.programme-list p,.guest-note-grid p,.rsvp-copy>p:not(.event-kicker),.messages-heading>p:last-child{color:var(--event-muted)}
 .event-snapshot small,.rsvp-copy span{color:var(--event-subtle)}
 .live-gallery,.share-invitation,.venue-feature,.theme-garden .live-gallery,.theme-garden .share-invitation{background:var(--event-deep);color:var(--event-on-deep)}
-.gallery-heading .event-kicker{color:color-mix(in srgb,var(--event-accent) 45%,white)}
+/* Small labels need full text contrast, not the decorative accent colour. */
+.live-event .venue-feature .event-kicker,.live-event .gallery-heading .event-kicker{color:var(--event-on-deep)}
+.live-event.theme-editorial .gallery-heading .event-kicker,.live-event.theme-minimalist .gallery-heading .event-kicker{color:var(--event-ink)}
 .gallery-heading p:last-child,.album-note,.venue-feature p:not(.event-kicker),.venue-feature small{color:color-mix(in srgb,var(--event-on-deep) 72%,transparent)}
 .share-invitation a:first-child,.venue-feature>a{background:var(--event-on-deep);color:var(--event-deep)}
 .live-event>footer{background:color-mix(in srgb,var(--event-deep) 78%,#000);color:var(--event-on-deep)}
