@@ -11,10 +11,11 @@ const siteUrl=()=>{
   return vercelHost?`https://${vercelHost}`:"http://localhost:3000";
 };
 
-function credentials(formData:FormData){
+function credentials(formData:FormData,signup=false){
   const email=String(formData.get("email")??"").trim().toLowerCase();
   const password=String(formData.get("password")??"");
-  if(!email.includes("@")||password.length<8)redirect(notice("/login","Enter a valid email address and a password of at least 8 characters."));
+  if(!email.includes("@")||!password)redirect(notice(signup?"/login?mode=signup":"/login","Enter your email address and password."));
+  if(signup&&password.length<12)redirect(notice("/login?mode=signup","Use at least 12 characters for your new password."));
   return{email,password};
 }
 
@@ -39,7 +40,7 @@ export async function signIn(formData:FormData){
 
 export async function signUp(formData:FormData){
   const supabase=await createClient();
-  const{email,password}=credentials(formData);
+  const{email,password}=credentials(formData,true);
   const displayName=String(formData.get("displayName")??"").trim();
   if(displayName.length<2)redirect(notice("/login?mode=signup","Please enter the name you would like us to use."));
   const{data,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:displayName},emailRedirectTo:`${siteUrl()}/auth/callback?next=/onboarding`}});
