@@ -63,7 +63,8 @@ export async function requestPasswordReset(formData:FormData){
   const email=String(formData.get("email")??"").trim().toLowerCase();
   if(!email.includes("@"))redirect(notice("/forgot-password","Enter the email address connected to your account."));
   const supabase=await createClient();
-  await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${siteUrl()}/auth/callback?next=/reset-password`});
+  const{error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${siteUrl()}/auth/callback?next=/reset-password`});
+  if(error)redirect(notice("/forgot-password","We couldn’t send a reset link right now. Please wait a few minutes and try again."));
   redirect(notice("/forgot-password","If an account matches that email, a secure reset link is on its way.","success"));
 }
 

@@ -1,3 +1,4 @@
+import {DashboardFeedback} from "@/components/dashboard-feedback";
 import {DashboardNav} from "@/components/dashboard-nav";
 import Image from "next/image";
 import {MediaUploader} from "@/components/media-uploader";
@@ -5,7 +6,7 @@ import {DocumentUploader} from "@/components/document-uploader";
 import {getOwnerEvent} from "@/lib/event-owner";
 import {createAlbum,deleteRecord} from "../actions";
 
-export default async function Gallery(){
+export default async function Gallery({searchParams}:{searchParams:Promise<{message?:string}>}){const {message}=await searchParams;
   const{supabase,event,user}=await getOwnerEvent();
   const[{data:albums},{data:media},{data:documents}]=await Promise.all([
     supabase.from("albums").select("*").eq("event_id",event.id).order("sort_order"),
@@ -13,7 +14,7 @@ export default async function Gallery(){
     supabase.from("documents").select("*").eq("event_id",event.id).order("created_at",{ascending:false})
   ]);
   const signed=await Promise.all((media??[]).map(async item=>({...item,url:(await supabase.storage.from("event-media").createSignedUrl(item.storage_path,3600)).data?.signedUrl??""})));
-  return <div className="app-shell"><DashboardNav active="Gallery"/><main className="app-main">
+  return <div className="app-shell"><DashboardNav active="Gallery"/><main className="app-main"><DashboardFeedback message={message}/>
     <div className="page-heading"><div><p className="eyebrow">Albums & uploads</p><h1>Your event gallery</h1><p>{(event.storage_used_bytes/1048576).toFixed(1)} MB of {(event.storage_limit_bytes/1073741824).toFixed(0)} GB used</p></div></div>
     <div className="grid-2 manage-grid"><section className="panel"><h2>Create album</h2><form action={createAlbum} className="manage-form"><input name="title" required maxLength={80} placeholder="Ceremony, reception, family..."/><textarea name="description" maxLength={300} placeholder="Album description"/><label><input type="checkbox" name="allowDownloads"/> Allow album downloads</label><button className="button button-dark">Create album</button></form>{albums?.map(a=><article className="manage-row" key={a.id}><div><b>{a.title}</b><small>{a.allow_downloads?"Downloads allowed":"Viewing only"}</small></div><form action={deleteRecord}><input type="hidden" name="table" value="albums"/><input type="hidden" name="id" value={a.id}/><button>Remove</button></form></article>)}</section>
       <section className="panel"><h2>Upload photo</h2><MediaUploader eventId={event.id} userId={user.id} albums={albums??[]}/><p className="security-note">JPEG, PNG or WebP · maximum 25 MB · owner-only upload path</p></section></div>
