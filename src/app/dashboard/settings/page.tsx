@@ -13,8 +13,8 @@ export default async function Settings({searchParams}:{searchParams:Promise<{pas
   return <div className="app-shell"><DashboardNav active="Settings"/><main className="app-main">
     <div className="page-heading"><div><p className="eyebrow">Make it yours</p><h1>A few personal touches.</h1><p>Shape the welcome, choose your look, and decide how to share.</p></div></div>
     {query.message&&<div className={query.message==="saved"?"rsvp-success":"auth-message"}>{query.message==="saved"?"Settings saved. Your selected appearance is now live.":query.message}</div>}
-    <nav className="settings-jumps" aria-label="Settings sections">{event.event_type === "wedding" && <a href="#invitation">Invitation</a>}<a href="#appearance">Appearance</a><a href="#event-details">Details & sharing</a><a href="#privacy">Password</a></nav>
-    <div id="invitation">{event.event_type === "wedding" && <InvitationEditor initial={event.invitation_cover} names={event.title} date={invitationDate(event.event_date)} palette={event.color_key} font={event.font_key} eventId={event.id} canEdit={["owner","planner"].includes(role)}/>}</div>
+    <nav className="settings-jumps" aria-label="Settings sections"><a href="#invitation">Invitation</a><a href="#appearance">Appearance</a><a href="#event-details">Details & sharing</a><a href="#privacy">Password</a></nav>
+    <div id="invitation">{<InvitationEditor memorial={event.event_type==="memorial"} initial={event.invitation_cover} names={event.title} date={invitationDate(event.event_date)} palette={event.color_key} font={event.font_key} eventId={event.id} canEdit={["owner","planner"].includes(role)}/>}</div>
     <div className="settings-layout">
     <form id="appearance" action={updateEvent} className="settings-workspace">
       <AppearancePicker eventType={event.event_type==="memorial"?"memorial":"wedding"} initialTheme={event.theme_key} initialColor={event.color_key} initialFont={event.font_key} premium={event.plan_code==="premium"}/>

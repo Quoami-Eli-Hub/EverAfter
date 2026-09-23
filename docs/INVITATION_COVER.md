@@ -1,22 +1,17 @@
-# Invitation cover
+# Invitation-first event pages
 
-Added September 2026. Wedding settings now include an optional invitation cover with names/date overrides, message, button label, and initials/flower/no emblem. Blank names and date follow event details. Colours and typography follow the saved event appearance.
+Every wedding and memorial opens with an invitation card. This includes the wedding and memorial demo pages. The card is rendered in the initial HTML and upgraded to a native modal after hydration; guests proceed with Open invitation or Escape. Each fresh visit replays it. Section links are followed after opening; RSVP/message result pages and the return from a successful password unlock bypass a second opening.
 
-The cover defaults off. Owners and planners can save it; the action checks both role and active event ID, and the database retains existing events RLS. Saves apply immediately to the current event page, as other appearance settings do.
+Owners and planners can edit the title, date, message, button and emblem in Settings. Empty title/date fields follow event details. The enabled field remains in the stored JSON for compatibility, but the application always enables the entry card. Existing database defaults therefore do not disable new event cards.
 
-Guests see a native modal dialog only after existing page access checks. Opening or Escape dismisses it and focuses the page heading. Reduced motion skips the animation. A sessionStorage marker avoids replay within the same tab; hash links and RSVP/tribute return URLs bypass it. Without JavaScript the event page remains accessible.
+Protected events show a card using only gate-approved information before requesting the event password. The invitation does not grant access to private content. Reduced-motion preferences skip the animation; without JavaScript a noscript style reveals the ordinary page.
 
-Demo: `/demo/invitation`. Open in a new tab/session to replay the guest cover. Dashboard preview includes an explicit Replay opening control.
+## Sample events refreshed on 23 September 2026
 
-Remote migration applied: `add_invitation_cover`:
+The user designated the existing events as examples for prospective users. The three existing IDs (1, 5 and 8) now have invitation settings, enabled RSVP with a five-person maximum and deadlines before the event date. Empty essential sections were filled without replacing existing stories. Quoamiharry was completed with a sample venue, five programme items, an album, story and guest guidance, and published publicly for review. The event pages label these known examples as samples; new customer events do not get that label.
 
-```sql
-alter table public.events add column invitation_cover jsonb not null
-default '{"enabled":false}'::jsonb
-constraint invitation_cover_object check (
-  jsonb_typeof(invitation_cover) = 'object'
-  and octet_length(invitation_cover::text) <= 2000
-);
-```
+The examples use existing local showcase imagery. Gift information makes clear that sample pages do not collect payments. No guest response, tribute or user account was fabricated or removed.
 
-Music, a memorial cover, and independent draft/publish versions are not included.
+## Verification
+
+Lint, production build and the existing submission regression suite. Browser checks cover initial card rendering, dismissal, replay on reload, and the mobile memorial layout. Database checks verify venue/programme/guest-section completeness and RSVP deadlines. No protected-event password was changed for testing.

@@ -20,7 +20,7 @@ export async function unlockEvent(formData: FormData) {
   const { data: token } = await supabase.rpc("unlock_event", { p_slug: slug, p_password: password });
   if (!token) redirect(`/${slug}?access=invalid`);
   (await cookies()).set(eventAccessCookie(slug), token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 86400, path: `/${slug}` });
-  redirect(`/${slug}`);
+  redirect(`/${slug}?access=opened`);
 }
 
 export async function submitRsvp(formData: FormData) {

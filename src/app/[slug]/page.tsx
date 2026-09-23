@@ -40,7 +40,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{const{s
 
 export default async function PublicEventPage({params,searchParams}:Props){
   const{slug}=await params,query=await searchParams;const token=(await cookies()).get(eventAccessCookie(slug))?.value;const data=await getEvent(slug,token);
-  if(!data){const supabase=await createClient();const{data:gate}=await supabase.rpc("get_event_gate",{p_slug:slug}).maybeSingle();if(!gate)notFound();return <main className={`access-page access-${gate.event_type}`}><section className="access-card"><Link className="brand" href="/"><span>ev.</span> EverAfter</Link><p className="eyebrow">Private invitation</p><h1>{gate.title}</h1><p>This event is password protected. Enter the password shared by the event owner.</p>{query.access&&<div className="auth-message">That password was not accepted. Please try again.</div>}<form action={unlockEvent}><input type="hidden" name="slug" value={slug}/><label>Event password<input name="password" type="password" required minLength={8} maxLength={128} autoComplete="current-password" autoFocus/></label><button className="button button-dark">Open event page</button></form></section></main>}
+  if(!data){const supabase=await createClient();const{data:gate}=await supabase.rpc("get_event_gate",{p_slug:slug}).maybeSingle();if(!gate)notFound();return <main className={`access-page access-${gate.event_type}`}>{!query.access&&<InvitationCover settings={invitationSettings({message:gate.event_type==="memorial"?"Join us in remembrance. Open the invitation to continue to this private gathering.":"You are invited. Open the invitation to continue to this private celebration."})} names={gate.title} date="A gathering to remember" memorial={gate.event_type==="memorial"}/>}<section className="access-card"><Link className="brand" href="/"><span>ev.</span> EverAfter</Link><p className="eyebrow">Private invitation</p><h1>{gate.title}</h1><p>This event is password protected. Enter the password shared by the event owner.</p>{query.access==="invalid"&&<div className="auth-message">That password was not accepted. Please try again.</div>}<form action={unlockEvent}><input type="hidden" name="slug" value={slug}/><label>Event password<input name="password" type="password" required minLength={8} maxLength={128} autoComplete="current-password" autoFocus/></label><button className="button button-dark">Open event page</button></form></section></main>}
 
   const{event,sections,schedule,venues,albums,media,documents,tributes}=data;
   const submissionsOpen=event.status==="published"&&event.visibility!=="private";
@@ -51,20 +51,21 @@ export default async function PublicEventPage({params,searchParams}:Props){
   const weddingDate=event.event_date?new Date(`${event.event_date}T12:00:00`):null;
   const formattedDate=weddingDate?new Intl.DateTimeFormat("en-GB",{day:"numeric",month:"long",year:"numeric"}).format(weddingDate):"Date to be confirmed";
   const primaryVenue=venues[0];
-  const infoKeys=(memorial?["family","directions","dress_code","donations","contact"]:["dress_code","accommodation","travel","gift_registry","contact"]).filter(key=>body(key));
+  const infoKeys=(memorial?["family","directions","dress_code","donations","contact"]:["dress_code","accommodation","travel","gift_registry","contact","faq"]).filter(key=>body(key));
   const requestHeaders=await headers();
   const requestHost=requestHeaders.get("x-forwarded-host")??requestHeaders.get("host");
   const requestProtocol=requestHeaders.get("x-forwarded-proto")??(requestHost?.startsWith("localhost")?"http":"https");
   const siteOrigin=requestHost?`${requestProtocol}://${requestHost}`:(process.env.NEXT_PUBLIC_SITE_URL??"http://localhost:3000");
   const shareText=encodeURIComponent(`${event.title} · ${formattedDate} · ${siteOrigin}/${slug}`);
 
-  const localShowcase=!memorial?event.id===8?{hero:"/events/quoami-harry/hero.png",story:"/events/quoami-harry/story.png",reception:"/events/quoami-harry/reception.png"}:event.id===5?{hero:"/showcase/wedding-hero.png",story:"/showcase/wedding-story.png",reception:"/showcase/wedding-reception.png"}:null:null;
+  const localShowcase=!memorial?event.id===8?{hero:"/events/quoami-harry/hero.png",story:"/events/quoami-harry/story.png",reception:"/events/quoami-harry/reception.png"}:(event.id===5||event.id===1)?{hero:"/showcase/wedding-hero.png",story:"/showcase/wedding-story.png",reception:"/showcase/wedding-reception.png"}:null:null;
   const showcase=Boolean(localShowcase);
   const heroUrl=media[0]?.url??localShowcase?.hero??null;
   const storyUrl=media[1]?.url??localShowcase?.story??null;
 
   return <main className={`live-event live-${memorial?"memorial":"wedding"} theme-${event.theme_key} palette-${event.color_key} font-${event.font_key}`}>
-    {!memorial && !query.rsvp && !query.tribute && <InvitationCover settings={invitationSettings(event.invitation_cover)} names={event.title} date={formattedDate} slug={slug}/>}
+    {!query.access && !query.rsvp && !query.tribute && <InvitationCover memorial={memorial} settings={invitationSettings(memorial?{message:"Join family and friends as we honour a cherished life and share memories together.",...event.invitation_cover as object}:event.invitation_cover)} names={event.title} date={formattedDate} slug={slug}/>}
+    {[1,5,8].includes(event.id)&&<aside className="sample-event-notice">Sample event · Names, plans and images illustrate what you can create. <Link href="/login?mode=signup">Create your event →</Link></aside>}
     <header className="live-nav"><Link href="/">EverAfter</Link><nav><a href="#story">Story</a><a href="#programme">Programme</a>{(media.length>0||!memorial)&&<a href="#gallery">Gallery</a>}<a href="#messages">{memorial?"Tributes":"Congratulations"}</a></nav><a className="nav-rsvp" href="#rsvp">RSVP</a></header>
 
     <section className="live-hero">
