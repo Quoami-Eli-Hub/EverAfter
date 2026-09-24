@@ -10,6 +10,7 @@ export function paystackSignature(body:string,secret:string){return createHmac("
 export function flutterwaveSignature(body:string,secret:string){return createHmac("sha256",secret).update(body).digest("base64")}
 
 export async function verifyAndActivatePaystack(reference:string){
+  try {
   const secret=process.env.PAYSTACK_SECRET_KEY;if(!secret)return false;
   const admin=createAdminClient();const{data:order}=await admin.from("payment_orders").select("amount,currency,provider_reference,provider").eq("provider_reference",reference).eq("provider","paystack").maybeSingle() as {data:Order|null};
   if(!order)return false;
@@ -17,9 +18,11 @@ export async function verifyAndActivatePaystack(reference:string){
   if(!response.ok)return false;const result=await response.json() as PaystackVerification;
   if(!result.status||result.data?.status!=="success"||result.data.reference!==reference||result.data.currency!==order.currency||result.data.amount!==Math.round(order.amount*100))return false;
   const{data}=await admin.rpc("activate_payment_order",{p_reference:reference,p_amount:order.amount,p_currency:order.currency});return data===true;
+  } catch { return false; }
 }
 
 export async function verifyAndActivateFlutterwave(transactionId:string,reference:string){
+  try {
   const secret=process.env.FLUTTERWAVE_SECRET_KEY;if(!secret)return false;
   const admin=createAdminClient();const{data:order}=await admin.from("payment_orders").select("amount,currency,provider_reference,provider").eq("provider_reference",reference).eq("provider","flutterwave").maybeSingle() as {data:Order|null};
   if(!order)return false;
@@ -27,4 +30,5 @@ export async function verifyAndActivateFlutterwave(transactionId:string,referenc
   if(!response.ok)return false;const result=await response.json() as FlutterwaveVerification;
   if(result.status!=="success"||result.data?.status!=="successful"||result.data.tx_ref!==reference||result.data.currency!==order.currency||Number(result.data.amount)!==Number(order.amount))return false;
   const{data}=await admin.rpc("activate_payment_order",{p_reference:reference,p_amount:order.amount,p_currency:order.currency});return data===true;
+  } catch { return false; }
 }

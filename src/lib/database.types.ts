@@ -215,6 +215,7 @@ export type Database = {
           max_party_size: number
           owner_id: string
           plan_code: string
+          plan_paid: boolean
           published_at: string | null
           rsvp_deadline: string | null
           rsvp_enabled: boolean
@@ -243,6 +244,7 @@ export type Database = {
           max_party_size?: number
           owner_id: string
           plan_code?: string
+          plan_paid?: boolean
           published_at?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean
@@ -271,6 +273,7 @@ export type Database = {
           max_party_size?: number
           owner_id?: string
           plan_code?: string
+          plan_paid?: boolean
           published_at?: string | null
           rsvp_deadline?: string | null
           rsvp_enabled?: boolean

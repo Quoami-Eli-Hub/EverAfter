@@ -1,0 +1,33 @@
+begin;
+select set_config('request.jwt.claim.sub',(select owner_id::text from public.events limit 1),true);
+set local role authenticated;
+do $$ declare e bigint; o public.payment_orders; rejected boolean; begin
+e:=public.create_event('wedding','Plan rollback test','plan-test-'||replace(gen_random_uuid()::text,'-',''));
+update public.events set visibility='public' where id=e;
+perform set_config('test.event_id',e::text,true);
+rejected:=false; begin update public.events set status='published',published_at=now() where id=e; exception when others then if sqlerrm not like '%Purchase a plan%' then raise; end if; rejected:=true; end;
+if not rejected then raise exception 'FAIL unpaid publishing'; end if;
+rejected:=false; begin update public.events set plan_paid=true,plan_code='premium' where id=e; exception when others then if sqlerrm not like '%verified payments%' then raise; end if; rejected:=true; end;
+if not rejected then raise exception 'FAIL entitlement tampering'; end if;
+rejected:=false; begin update public.events set theme_key='cinematic' where id=e; exception when others then if sqlerrm not like '%Premium%' then raise; end if; rejected:=true; end;
+if not rejected then raise exception 'FAIL premium theme'; end if;
+rejected:=false; begin perform public.create_payment_order(e,'storage_addon','storage_5gb','GHS','paystack'); exception when others then if sqlerrm not like '%publishing plan%' then raise; end if; rejected:=true; end;
+if not rejected then raise exception 'FAIL unpaid addon'; end if;
+o:=public.create_payment_order(e,'event_plan','starter','GHS','paystack'); perform set_config('test.reference',o.provider_reference,true);
+end $$;
+reset role;
+do $$ declare e bigint:=current_setting('test.event_id')::bigint; r text:=current_setting('test.reference'); o public.payment_orders; begin
+if public.activate_payment_order(r,1,'GHS') then raise exception 'FAIL wrong amount'; end if;
+if not public.activate_payment_order(r,250,'GHS') then raise exception 'FAIL starter activation'; end if;
+update public.events set status='published',published_at=now() where id=e;
+o:=public.create_payment_order(e,'storage_addon','storage_5gb','GHS','paystack');
+if not public.activate_payment_order(o.provider_reference,100,'GHS') then raise exception 'FAIL addon'; end if;
+perform public.activate_payment_order(o.provider_reference,100,'GHS');
+if (select storage_limit_bytes from public.events where id=e)<>10737418240 then raise exception 'FAIL addon idempotency'; end if;
+o:=public.create_payment_order(e,'event_plan','premium','GHS','paystack');
+if not public.activate_payment_order(o.provider_reference,600,'GHS') then raise exception 'FAIL upgrade'; end if;
+if (select storage_limit_bytes from public.events where id=e)<>26843545600 then raise exception 'FAIL upgrade addon preservation'; end if;
+update public.events set theme_key='cinematic' where id=e;
+end $$;
+select 'PASS: draft, publish gate, tamper protection, theme gate, amount validation, activation, addon idempotency and upgrade preservation' as result;
+rollback;
