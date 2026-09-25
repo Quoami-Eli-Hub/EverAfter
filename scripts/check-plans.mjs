@@ -7,7 +7,7 @@ import * as crypto from 'node:crypto';
 function load(path,imports={},globals={}){
   const exports={};
   const source=ts.transpileModule(readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  vm.runInNewContext(source,{exports,Buffer,Response,Request,process:{env:{}},require:name=>{if(name in imports)return imports[name];throw new Error(name)},...globals});
+  vm.runInNewContext(source,{exports,Buffer,Response,Request,AbortSignal,URL,process:{env:{}},require:name=>{if(name in imports)return imports[name];throw new Error(name)},...globals});
   return exports;
 }
 const plans=load('src/lib/plans.ts');
@@ -37,10 +37,10 @@ assert.equal(plans.validPurchase('storage_addon','premium'),false);
 let result,activationCount=0,throwFetch=false;
 const order={amount:250,currency:'GHS'};
 const client={from:()=>({select(){return this},eq(){return this},async maybeSingle(){return {data:order}}}),async rpc(){activationCount++;return {data:true}}};
-const payments=load('src/lib/payments.ts',{'node:crypto':crypto,'@/lib/supabase/server':{createAdminClient:()=>client}},{process:{env:{PAYSTACK_SECRET_KEY:'test',FLUTTERWAVE_SECRET_KEY:'test'}},fetch:async()=>{if(throwFetch)throw new Error('Network');return {ok:true,json:async()=>result}}});
-result={status:true,data:{status:'success',reference:'ref',currency:'GHS',amount:25000}};
+const payments=load('src/lib/payments.ts',{'@/lib/payment-config':{paystackMode:()=>"live"},'node:crypto':crypto,'@/lib/supabase/server':{createAdminClient:()=>client}},{process:{env:{PAYSTACK_SECRET_KEY:'sk_live_unit_test',FLUTTERWAVE_SECRET_KEY:'test'}},fetch:async()=>{if(throwFetch)throw new Error('Network');return {ok:true,json:async()=>result}}});
+result={status:true,data:{domain:'live',status:'success',reference:'ref',currency:'GHS',amount:25000}};
 assert.equal(await payments.verifyAndActivatePaystack('ref'),true);
-for(const changed of [{amount:1},{reference:'other'},{currency:'USD'},{status:'failed'}]){
+for(const changed of [{domain:'test'},{amount:1},{reference:'other'},{currency:'USD'},{status:'failed'}]){
   const original=result;result={...result,data:{...result.data,...changed}};
   assert.equal(await payments.verifyAndActivatePaystack('ref'),false);result=original;
 }
@@ -58,3 +58,31 @@ assert.equal((await webhook.POST(request('wrong'))).status,401);assert.equal(cal
 assert.equal((await webhook.POST(request())).status,200);assert.equal(calls,1);
 verified=false;assert.equal((await webhook.POST(request())).status,503);
 console.log('PASS: plan eligibility, verified amounts/currencies/references, provider outages, Flutterwave v3 authentication and retry responses.');
+
+const redirects=load("src/lib/safe-redirect.ts");
+for(const path of ["//evil.test","/\\evil.test","https://evil.test",null])assert.equal(redirects.safeNextPath(path),"/dashboard");
+assert.equal(redirects.safeNextPath("/reset-password"),"/reset-password");
+
+let paystackVerified=true,paystackCalls=0;
+const paystackWebhook=load('src/app/api/payments/paystack/webhook/route.ts',{'@/lib/payments':{safeEqual:payments.safeEqual,paystackSignature:payments.paystackSignature,verifyAndActivatePaystack:async(ref)=>{assert.equal(ref,'ref');paystackCalls++;return paystackVerified}}},{process:{env:{PAYSTACK_SECRET_KEY:'sk_live_unit_test'}}});
+const chargeBody=JSON.stringify({event:'charge.success',data:{reference:'ref'}});
+const paystackRequest=(body=chargeBody,signature=payments.paystackSignature(body,'sk_live_unit_test'))=>new Request('https://example.test/webhook',{method:'POST',headers:{'x-paystack-signature':signature},body});
+assert.equal((await paystackWebhook.POST(paystackRequest(chargeBody,'wrong'))).status,401);
+assert.equal(paystackCalls,0);
+assert.equal((await paystackWebhook.POST(paystackRequest('{'))).status,400);
+assert.equal((await paystackWebhook.POST(paystackRequest())).status,200);
+assert.equal(paystackCalls,1);
+paystackVerified=false;
+assert.equal((await paystackWebhook.POST(paystackRequest())).status,503);
+assert.equal((await paystackWebhook.POST(paystackRequest(JSON.stringify({event:'unrelated'})))).status,200);
+assert.equal(paystackCalls,2);
+
+const configEnv={PAYMENTS_ENABLED:'true',SUPABASE_SECRET_KEY:'test-server-key',PAYSTACK_SECRET_KEY:'sk_live_unit_test',VERCEL_ENV:'production'};
+const config=load('src/lib/payment-config.ts',{}, {process:{env:configEnv}});
+assert.equal(config.paystackReady(),true);
+configEnv.PAYSTACK_SECRET_KEY='sk_test_unit_test';assert.equal(config.paystackReady(),false);
+configEnv.PAYSTACK_MODE='test';assert.equal(config.paystackReady(),false);
+configEnv.VERCEL_ENV='preview';assert.equal(config.paystackReady(),true);
+configEnv.PAYMENTS_ENABLED='false';assert.equal(config.paystackReady(),false);
+configEnv.PAYMENTS_ENABLED='true';configEnv.SUPABASE_SECRET_KEY='';assert.equal(config.paystackReady(),false);
+console.log('PASS: Paystack webhook signatures, malformed payloads, retry responses, production/test isolation, and safe login redirects.');

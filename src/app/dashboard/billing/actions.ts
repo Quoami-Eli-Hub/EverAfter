@@ -1,4 +1,5 @@
 "use server";
+import {paystackReady} from "@/lib/payment-config";
 import {randomBytes} from "node:crypto";
 import {redirect} from "next/navigation";
 import {revalidatePath} from "next/cache";
@@ -22,6 +23,7 @@ export async function beginCheckout(form:FormData){
   if(purpose==="storage_addon"&&!event.plan_paid)redirect(billingUrl("Choose a publishing plan before adding storage."));
   const provider=currency==="GHS"?"paystack":"flutterwave";
   const providerSecret=provider==="paystack"?process.env.PAYSTACK_SECRET_KEY:process.env.FLUTTERWAVE_SECRET_KEY;
+  if(provider==="paystack"&&!paystackReady())redirect(billingUrl("Paystack checkout is awaiting final setup. Your draft is safe."));
   if(!providerSecret)redirect(billingUrl(`${provider==="paystack"?"Paystack":"Flutterwave"} checkout is currently unavailable.`));
   const supabase=await createClient();const db=supabase as unknown as SupabaseClient;
   const{data:order,error}=await db.rpc("create_payment_order",{p_event_id:event.id,p_purpose:purpose,p_product_code:product,p_currency:currency,p_provider:provider});
@@ -29,10 +31,10 @@ export async function beginCheckout(form:FormData){
   const reference=String(order.provider_reference),amount=Number(order.amount);let checkoutUrl:string|undefined;
   try{
   if(provider==="paystack"){
-    const response=await fetch("https://api.paystack.co/transaction/initialize",{method:"POST",headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify({email:user.email,amount:Math.round(amount*100),currency:"GHS",reference,channels:["card","mobile_money"],callback_url:`${siteUrl()}/api/payments/paystack/callback`,metadata:{order_id:order.id,purpose,product}})});
+    const response=await fetch("https://api.paystack.co/transaction/initialize",{method:"POST",signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify({email:user.email,amount:Math.round(amount*100),currency:"GHS",reference,channels:["card","mobile_money"],callback_url:`${siteUrl()}/api/payments/paystack/callback`,metadata:{order_id:order.id,purpose,product}})});
     const result=await response.json() as {status?:boolean;data?:{authorization_url?:string}};checkoutUrl=result.status?result.data?.authorization_url:undefined;
   }else{
-    const response=await fetch("https://api.flutterwave.com/v3/payments",{method:"POST",headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify({tx_ref:reference,amount,currency:"USD",redirect_url:`${siteUrl()}/api/payments/flutterwave/callback`,payment_options:"card",customer:{email:user.email},customizations:{title:"EverAfter",description:purpose==="event_plan"?"One-time event page plan":"One-time storage upgrade"},meta:{order_id:order.id,purpose,product}})});
+    const response=await fetch("https://api.flutterwave.com/v3/payments",{method:"POST",signal:AbortSignal.timeout(15000),headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify({tx_ref:reference,amount,currency:"USD",redirect_url:`${siteUrl()}/api/payments/flutterwave/callback`,payment_options:"card",customer:{email:user.email},customizations:{title:"EverAfter",description:purpose==="event_plan"?"One-time event page plan":"One-time storage upgrade"},meta:{order_id:order.id,purpose,product}})});
     const result=await response.json() as {status?:string;data?:{link?:string}};checkoutUrl=result.status==="success"?result.data?.link:undefined;
   }
   }catch{checkoutUrl=undefined;}

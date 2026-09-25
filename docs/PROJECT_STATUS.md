@@ -1,5 +1,7 @@
 # EverAfter project status
 
+Updated 25 September 2026: see [the current launch review](LAUNCH_REVIEW.md) for verified checks and remaining blockers. The list below is historical implementation context, not a claim that every external integration is active.
+
 ## Implemented baseline
 
 - Multi-event accounts with owner, planner, contributor and viewer access roles; email/password and Google OAuth flows.
@@ -23,8 +25,8 @@
 2. Configure custom SMTP for reliable branded authentication mail.
 3. Enable leaked-password protection in Supabase Auth.
 4. Add Paystack and Flutterwave merchant credentials, configure both webhook URLs, and set `PAYMENTS_ENABLED=true`.
-5. Connect a production domain and set `NEXT_PUBLIC_SITE_URL` in Vercel.
-6. Grant the first administrator only after confirming the intended account and access scope.
+5. Retain `https://ever-after-beta.vercel.app` as requested; a new platform domain is not required.
+6. The requested administrator is already configured with Premium entitlement.
 
 ## Environment-gated production activation
 

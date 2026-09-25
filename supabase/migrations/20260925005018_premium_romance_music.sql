@@ -62,3 +62,5 @@ create policy music_guest_read on storage.objects for select to anon,authenticat
  where e.music_path=name and e.plan_paid and e.plan_code='premium'
  and e.status='published' and (e.visibility='public' or
  (e.visibility='protected' and private.has_event_access(e.id)))));
+
+

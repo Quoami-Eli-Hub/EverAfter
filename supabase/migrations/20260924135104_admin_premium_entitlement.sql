@@ -1,3 +1,7 @@
+-- Only trusted server/database operators may grant platform administration.
+revoke update on public.profiles from anon,authenticated;
+grant update(display_name,avatar_path,onboarding_complete) on public.profiles to authenticated;
+
 create or replace function private.enforce_event_plan() returns trigger
 language plpgsql set search_path='' as $$
 begin
@@ -16,7 +20,7 @@ begin
       end if;
     end if;
   end if;
-  if tg_op='INSERT' and new.owner_id=(select auth.uid()) and exists(select 1 from public.profiles p where p.id=new.owner_id and p.is_admin) then
+  if tg_op='INSERT' and new.owner_id=(select auth.uid()) and private.is_platform_admin() then
     new.plan_code:='premium';
     new.plan_paid:=true;
     new.branding_removed:=true;
@@ -28,3 +32,4 @@ begin
   end if;
   return new;
 end $$;
+

@@ -86,3 +86,5 @@ revoke all on function public.activate_payment_order(text,numeric,text) from pub
 grant execute on function public.activate_payment_order(text,numeric,text) to service_role;
 revoke all on function public.create_payment_order(bigint,text,text,text,text) from public,anon;
 grant execute on function public.create_payment_order(bigint,text,text,text,text) to authenticated,service_role;
+
+

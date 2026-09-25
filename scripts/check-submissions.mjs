@@ -41,5 +41,7 @@ const message={slug:'test-event',authorName:'Test Guest',message:'Congratulation
   result=await run('submitTribute',message,event,{code:'42501'});assert.equal(result.url,'/test-event?tribute=error#messages');assert.equal(result.refreshes.length,0);
   result=await run('submitRsvp',rsvp,event,{code:'42501'});assert.match(result.url,/rsvp=error/);assert.equal(result.refreshes.length,0);
   result=await run('submitTribute',{...message,slug:'//outside.example'},event);assert.equal(result.url,'/');assert.equal(result.inserts.length,0);
+  result=await run('submitRsvp',{...rsvp,website:'spam.example'},event);assert.equal(result.inserts.length,0);assert.match(result.url,/rsvp=error/);
+  result=await run('submitTribute',{...message,website:'spam.example'},event);assert.equal(result.inserts.length,0);assert.match(result.url,/tribute=error/);
   console.log('PASS: guest submissions, routing, moderation defaults, validation, closed/private events, and database failure handling.');
 })().catch(error=>{console.error(error);process.exitCode=1});

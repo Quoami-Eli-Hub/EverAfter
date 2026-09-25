@@ -1,0 +1,1 @@
+alter table public.events add column invitation_cover jsonb not null default '{"enabled":false}'::jsonb constraint invitation_cover_object check (jsonb_typeof(invitation_cover) = 'object' and octet_length(invitation_cover::text) <= 2000);

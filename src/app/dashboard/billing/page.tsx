@@ -1,3 +1,4 @@
+import {paystackReady} from "@/lib/payment-config";
 import {SubmitButton} from "@/components/submit-button";
 import Link from "next/link";
 import {DashboardNav} from "@/components/dashboard-nav";
@@ -15,7 +16,7 @@ export default async function BillingPage({searchParams}:{searchParams:Promise<{
     db.from("custom_domains").select("*").eq("event_id",event.id).maybeSingle()
   ]);
   const owner=role==="owner",paid=event.plan_paid===true;
-  const readyGhs=process.env.PAYMENTS_ENABLED==="true"&&Boolean(process.env.PAYSTACK_SECRET_KEY)&&Boolean(process.env.SUPABASE_SECRET_KEY);
+  const readyGhs=paystackReady();
   const readyUsd=process.env.PAYMENTS_ENABLED==="true"&&Boolean(process.env.FLUTTERWAVE_SECRET_KEY)&&Boolean(process.env.SUPABASE_SECRET_KEY);
   const current=planExperience[planCode(event.plan_code)];
   function checkout(purpose:string,product:string){return <div className="checkout-row">{[["GHS",readyGhs,"Card / Mobile Money"],["USD",readyUsd,"Card"]].map(([currency,ready,label])=><form action={beginCheckout} key={String(currency)}><input type="hidden" name="eventId" value={event.id}/><input type="hidden" name="purpose" value={purpose}/><input type="hidden" name="product" value={product}/><input type="hidden" name="currency" value={String(currency)}/><SubmitButton disabled={!owner||!ready} pendingLabel="Opening checkout…">{ready?String(currency)+" · "+label:String(currency)+" unavailable"}</SubmitButton></form>)}</div>}
@@ -26,6 +27,7 @@ export default async function BillingPage({searchParams}:{searchParams:Promise<{
     {!owner&&<p className="billing-notice">Only the event owner can purchase a plan or manage a domain.</p>}
     {!readyGhs&&!readyUsd&&<p className="billing-notice">Online checkout is currently unavailable. You can continue creating and previewing your event.</p>}
     {!paid&&<div className="draft-guide"><b>Your free workspace</b><p>Write your story, personalise the invitation, add photos and preview the page. Choose a plan below when you are ready to share it with guests.</p><Link href="/dashboard/editor">Continue editing →</Link></div>}
+    <p className="billing-notice">Payments are processed securely by the provider. Refund requests are reviewed individually: <a href="mailto:dehuminals@gmail.com">dehuminals@gmail.com</a>. Read our <Link href="/terms">payment terms</Link>.</p>
     <section className="billing-section"><div className="billing-heading"><p className="eyebrow">Two ways to make it yours</p><h2>Choose your experience</h2><p>Every plan includes the invitation card, RSVP management, message moderation, programme, team collaboration and privacy controls.</p></div>
       {planError&&<p role="alert">Plans could not be loaded. Please refresh and try again.</p>}
       <div className="plan-grid">{(plans??[]).map(plan=>{const experience=planExperience[planCode(plan.code)],active=paid&&plan.code===event.plan_code;return <article className={"plan-card plan-style-"+plan.code+(active?" current":"")} key={plan.code}>
