@@ -5,7 +5,7 @@ import { InvitationCover } from "./invitation-cover";
 import { invitationSettings, type InvitationSettings } from "@/lib/invitation";
 import { saveInvitationCover } from "@/app/dashboard/invitation-actions";
 
-export function InvitationEditor({ initial, names, date, palette, font, eventId, canEdit, memorial=false }: { initial: unknown; names: string; date: string; palette: string; font: string; eventId: number; canEdit: boolean; memorial?:boolean }) {
+export function InvitationEditor({ initial, names, date, palette, font, eventId, canEdit, theme="classic", memorial=false }: { initial: unknown; names: string; date: string; palette: string; font: string; eventId: number; canEdit: boolean; theme?:string; memorial?:boolean }) {
   const [settings, setSettings] = useState(() => invitationSettings(memorial?{message:"Join family and friends as we honour a cherished life and share memories together.",...(initial&&typeof initial==="object"?initial:{})}:initial));
   const [size, setSize] = useState("desktop");
   const [replay, setReplay] = useState(0);
@@ -27,7 +27,7 @@ export function InvitationEditor({ initial, names, date, palette, font, eventId,
       {!canEdit && <p>Only the owner and planners can change the invitation.</p>}
       <p role="status">{result.message}</p>
     </form><div><div className="invitation-preview-tools"><button type="button" aria-pressed={size === "desktop"} onClick={() => setSize("desktop")}>Desktop</button><button type="button" aria-pressed={size === "mobile"} onClick={() => setSize("mobile")}>Mobile</button><button type="button" onClick={() => setReplay(x => x + 1)}>Replay opening</button></div>
-      <div className={`invitation-preview-frame ${size} palette-${palette} font-${font}`}><InvitationCover memorial={memorial} key={replay} settings={settings} names={names} date={date} preview/></div>
+      <div className={`invitation-preview-frame ${size} theme-${theme} palette-${palette} font-${font}`}><InvitationCover memorial={memorial} key={replay} settings={settings} names={names} date={date} preview/></div>
       <p><small>Preview uses your saved palette and typography. Save to apply your invitation changes.</small></p>
     </div></div>
   </section>;

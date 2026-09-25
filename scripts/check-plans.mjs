@@ -11,6 +11,20 @@ function load(path,imports={},globals={}){
   return exports;
 }
 const plans=load('src/lib/plans.ts');
+assert.equal(plans.canUseTheme('starter',true,'romance'),false);
+assert.equal(plans.canUseTheme('premium',false,'romance'),false);
+assert.equal(plans.canUseTheme('premium',true,'romance'),true);
+let musicRole='owner',musicPlan='premium',musicPaid=true,musicFile=true,musicWrites=0;
+const musicClient={storage:{from:()=>({list:async()=>({data:musicFile?[{name:'track.mp3'}]:[],error:null})})},from:()=>({update:()=>{musicWrites++;return {eq:()=>({select:()=>({maybeSingle:async()=>({data:{id:5},error:null})})})}}})};
+const music=load('src/app/dashboard/music-actions.ts',{'next/cache':{revalidatePath:()=>{}},'@/lib/event-owner':{getOwnerEvent:async()=>({supabase:musicClient,event:{id:5,slug:'test',plan_code:musicPlan,plan_paid:musicPaid},role:musicRole})}});
+assert.equal((await music.saveEventMusic(6,true)).ok,false);
+musicRole='viewer';assert.equal((await music.saveEventMusic(5,true)).ok,false);
+musicRole='owner';musicPlan='starter';assert.equal((await music.saveEventMusic(5,true)).ok,false);
+musicPlan='premium';musicPaid=false;assert.equal((await music.saveEventMusic(5,true)).ok,false);
+musicPaid=true;musicFile=false;assert.equal((await music.saveEventMusic(5,true)).ok,false);
+assert.equal(musicWrites,0);musicFile=true;assert.equal((await music.saveEventMusic(5,true)).ok,true);
+assert.equal((await music.saveEventMusic(5,false)).ok,true);assert.equal(musicWrites,2);
+
 assert.equal(plans.canPurchasePlan('starter',false,'starter'),true);
 assert.equal(plans.canPurchasePlan('starter',true,'starter'),false);
 assert.equal(plans.canPurchasePlan('starter',true,'premium'),true);

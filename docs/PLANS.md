@@ -6,7 +6,7 @@ New events are free drafts. Publishing requires a verified one-time plan purchas
 | --- | --- | --- |
 | Price per event | GH₵250 / US$20 | GH₵600 / US$45 |
 | Included storage | 5 GB | 20 GB |
-| Layouts | Classic, Garden, Editorial | Starter layouts plus Cinematic and Minimalist |
+| Layouts | Classic, Garden, Editorial | Starter layouts plus Cinematic, Minimalist and Romance |
 | Workflow | Details, design, sharing | Signature design, gallery, custom domain |
 | Footer | EverAfter branding | Branding removed |
 | Domain | EverAfter event link | Connect a separately owned domain |
@@ -24,3 +24,5 @@ Custom-domain writes are server-only after owner and paid Premium checks. TXT ow
 ## Verification
 
 Run `node scripts/check-plans.mjs`, `node scripts/check-submissions.mjs`, `npm run lint`, and `npm run build`. Database integration checks run inside a rolled-back transaction; no real charges or paid test events are retained. A real provider sandbox checkout and production credential validation are still required before enabling live payments.
+
+Premium music: Settings accepts one replaceable MP3 soundtrack up to 20 MB, stored in the private event-music bucket. Owner/planner uploads and updates require paid Premium access. Guests choose playback; audio is not preloaded or autoplayed. Public playback uses a one-hour signed URL and private/protected events retain their event access rules. Music can be removed without changing the template. Romance is available in Appearance; /demo/romance previews it with responses disabled.
