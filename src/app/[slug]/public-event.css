@@ -47,3 +47,23 @@
 .share-invitation a:first-child,.venue-feature>a{background:var(--event-on-deep);color:var(--event-deep)}
 .live-event>footer{background:color-mix(in srgb,var(--event-deep) 78%,#000);color:var(--event-on-deep)}
 .theme-garden.live-memorial .live-hero{background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--event-accent) 55%,transparent),transparent 38%),var(--event-deep)}
+/* Keep the sample banner and navigation in separate, predictable rows. */
+.live-event>.sample-event-notice{position:relative;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 18px;margin:0;padding:12px 24px;font:12px/1.5 var(--font-sans);background:var(--event-soft);color:var(--event-ink)}
+.live-event>.sample-event-notice a{white-space:nowrap;text-underline-offset:3px}.sample-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-left:1px solid var(--event-line);padding-left:18px}
+.live-event>.live-nav{position:relative;inset:auto;height:auto;min-height:80px;padding:18px clamp(24px,5vw,78px);gap:24px;background:var(--event-paper);color:var(--event-ink);border-bottom:1px solid var(--event-line)}
+.live-event>.live-nav .nav-rsvp{border-color:var(--event-ink);min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px 24px}.live-event>.live-nav>a:first-child{line-height:1.1;white-space:nowrap}
+.live-event .hero-content{min-width:0}.live-event .hero-content h1{line-height:1.03;text-wrap:balance;overflow-wrap:anywhere}.live-event .hero-actions a{min-height:48px;display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.4}.live-event section[id]{scroll-margin-top:24px}
+@media(max-width:620px){
+ .live-event>.sample-event-notice{gap:3px 12px;padding:10px 20px;font-size:11px}.live-event>.sample-event-notice>span:first-child{flex-basis:100%}.sample-label{font-size:9px;padding-left:12px}
+ .live-event>.live-nav{min-height:72px;padding:14px 24px;gap:16px}.live-event>.live-nav>a:first-child{font-size:24px}.live-event>.live-nav .nav-rsvp{font-size:11px;padding:9px 22px}
+ .live-event .live-hero{min-height:620px;min-height:max(620px,calc(100svh - 138px));padding:72px 24px 84px;align-items:flex-end;justify-content:flex-start;text-align:left}
+ .live-event .hero-content{width:100%;max-width:100%}.live-event .hero-content>p{font-size:10px;letter-spacing:.24em;margin:0 0 20px}.live-event .hero-content h1{font-size:clamp(44px,12vw,68px);line-height:1.04;letter-spacing:-.035em;margin:0 0 24px;text-transform:none}.live-event .hero-content>span{display:block;max-width:32ch;font-size:12px;letter-spacing:.05em;line-height:1.8}
+ .live-event .hero-actions{margin-top:30px;gap:10px;flex-direction:row;flex-wrap:wrap}.live-event .hero-actions a{flex:1 1 140px;font-size:12px;padding:13px 16px;min-height:48px}.live-event .hero-scroll{bottom:25px;left:50%;white-space:nowrap;font-size:9px}
+ .live-event .hero-shade{display:block;background:linear-gradient(0deg,#141811eb 0%,#1418119c 45%,#14181120 100%)}
+ .live-event .event-snapshot{grid-template-columns:1fr 1fr}.live-event .event-snapshot>div{min-width:0;padding:20px;border-right:0}.live-event .event-snapshot strong{font-size:16px;line-height:1.4}.live-event .event-snapshot small{font-size:9px;color:var(--event-muted)}
+ .live-event .story-visual{min-height:0;height:440px;height:clamp(320px,110vw,480px)}.live-event .live-story{gap:36px}.live-event .story-copy h2,.live-event .section-heading h2,.live-event .gallery-heading h2,.live-event .rsvp-copy h2,.live-event .messages-heading h2,.live-event .share-invitation h2{font-size:clamp(34px,9vw,48px);line-height:1.1}.live-event .programme-list article>div{min-width:0}.live-event .message-form{padding:28px 22px}.live-event .rsvp-card input,.live-event .rsvp-card select,.live-event .rsvp-card textarea,.live-event .message-form input,.live-event .message-form textarea{font-size:16px}
+}
+@media(max-width:360px){.live-event .hero-actions{flex-direction:column}.live-event .hero-actions a{flex:auto}.live-event .hero-content h1{font-size:42px}}
+.live-event .live-hero{flex-direction:row}
+.live-event.theme-garden.live-memorial>.live-nav{color:var(--event-ink);border-color:var(--event-line)}
+.live-event.theme-editorial .event-snapshot small,.live-event.theme-cinematic .event-snapshot small{color:#c8ccc5}

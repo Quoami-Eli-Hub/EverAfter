@@ -65,7 +65,7 @@ export default async function PublicEventPage({params,searchParams}:Props){
 
   return <main className={`live-event live-${memorial?"memorial":"wedding"} theme-${event.theme_key} palette-${event.color_key} font-${event.font_key}`}>
     {!query.access && !query.rsvp && !query.tribute && <InvitationCover memorial={memorial} settings={invitationSettings(memorial?{message:"Join family and friends as we honour a cherished life and share memories together.",...event.invitation_cover as object}:event.invitation_cover)} names={event.title} date={formattedDate} slug={slug}/>}
-    {[1,5,8].includes(event.id)&&<aside className="sample-event-notice">Sample event · Names, plans and images illustrate what you can create. <Link href="/login?mode=signup">Create your event →</Link></aside>}
+    {[1,5,8].includes(event.id)&&<aside className="sample-event-notice"><span>A little inspiration for your own celebration</span><Link href="/login?mode=signup">Create your event →</Link><span className="sample-label">Sample event</span></aside>}
     <header className="live-nav"><Link href="/">EverAfter</Link><nav><a href="#story">Story</a><a href="#programme">Programme</a>{(media.length>0||!memorial)&&<a href="#gallery">Gallery</a>}<a href="#messages">{memorial?"Tributes":"Congratulations"}</a></nav><a className="nav-rsvp" href="#rsvp">RSVP</a></header>
 
     <section className="live-hero">
