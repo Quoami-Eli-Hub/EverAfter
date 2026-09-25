@@ -56,7 +56,7 @@
 @media(max-width:620px){
  .live-event>.sample-event-notice{gap:3px 12px;padding:10px 20px;font-size:11px}.live-event>.sample-event-notice>span:first-child{flex-basis:100%}.sample-label{font-size:9px;padding-left:12px}
  .live-event>.live-nav{min-height:72px;padding:14px 24px;gap:16px}.live-event>.live-nav>a:first-child{font-size:24px}.live-event>.live-nav .nav-rsvp{font-size:11px;padding:9px 22px}
- .live-event .live-hero{min-height:620px;min-height:max(620px,calc(100svh - 138px));padding:72px 24px 84px;align-items:flex-end;justify-content:flex-start;text-align:left}
+ .live-event .live-hero{min-height:620px;min-height:max(620px,calc(100svh - 72px));padding:72px 24px 84px;align-items:flex-end;justify-content:flex-start;text-align:left}
  .live-event .hero-content{width:100%;max-width:100%}.live-event .hero-content>p{font-size:10px;letter-spacing:.24em;margin:0 0 20px}.live-event .hero-content h1{font-size:clamp(44px,12vw,68px);line-height:1.04;letter-spacing:-.035em;margin:0 0 24px;text-transform:none}.live-event .hero-content>span{display:block;max-width:32ch;font-size:12px;letter-spacing:.05em;line-height:1.8}
  .live-event .hero-actions{margin-top:30px;gap:10px;flex-direction:row;flex-wrap:wrap}.live-event .hero-actions a{flex:1 1 140px;font-size:12px;padding:13px 16px;min-height:48px}.live-event .hero-scroll{bottom:25px;left:50%;white-space:nowrap;font-size:9px}
  .live-event .hero-shade{display:block;background:linear-gradient(0deg,#141811eb 0%,#1418119c 45%,#14181120 100%)}
@@ -67,6 +67,9 @@
 .live-event .live-hero{flex-direction:row}
 .live-event.theme-garden.live-memorial>.live-nav{color:var(--event-ink);border-color:var(--event-line)}
 .live-event.theme-editorial .event-snapshot small,.live-event.theme-cinematic .event-snapshot small{color:#c8ccc5}
+
+/* The invitation sends focus here for screen readers, not as an interactive control. */
+.live-event .hero-content h1[tabindex="-1"]:focus{outline:none}
 
 /* Readable guest-facing typography and a composed cinematic cover. */
 .live-event>.live-nav{min-height:76px;padding-block:14px}
@@ -80,7 +83,7 @@
 .live-event .rsvp-card label,.live-event .message-form label{font-size:12px;line-height:1.5}
 .live-event .message-wall cite,.live-event .album-note{font-size:12px;line-height:1.6}
 .live-event a:focus-visible,.live-event button:focus-visible{outline:3px solid currentColor;outline-offset:5px}
-.live-event.theme-cinematic.live-wedding .live-hero{min-height:680px;min-height:clamp(640px,calc(100svh - 120px),860px);padding:80px clamp(28px,7vw,120px) 96px;justify-content:flex-start;text-align:left}
+.live-event.theme-cinematic.live-wedding .live-hero{min-height:680px;min-height:clamp(640px,calc(100svh - 76px),860px);padding:80px clamp(28px,7vw,120px) 96px;justify-content:flex-start;text-align:left}
 .live-event.theme-cinematic.live-wedding .hero-content{width:48%;max-width:620px}
 .live-event.theme-cinematic.live-wedding .hero-content h1{font-size:clamp(64px,6.5vw,104px);line-height:1.08;letter-spacing:-.035em;margin:26px 0 28px;text-wrap:balance}
 .live-event.theme-cinematic.live-wedding .hero-content>p{font-size:12px;letter-spacing:.25em}
@@ -98,7 +101,7 @@
  .live-event.theme-cinematic.live-wedding .hero-content h1{font-size:clamp(60px,8vw,80px)}
 }
 @media(max-width:620px){
- .live-event.theme-cinematic.live-wedding .live-hero{min-height:680px;min-height:max(680px,calc(100svh - 138px));padding:250px 24px 76px;align-items:flex-end}
+ .live-event.theme-cinematic.live-wedding .live-hero{min-height:680px;min-height:max(680px,calc(100svh - 72px));padding:250px 24px 76px;align-items:flex-end}
  .live-event.theme-cinematic.live-wedding .live-hero-image{object-position:65% center}
  .live-event.theme-cinematic.live-wedding .hero-content{width:100%;max-width:100%}
  .live-event.theme-cinematic.live-wedding .hero-content h1{font-size:clamp(46px,12vw,68px);margin:16px 0 20px}
