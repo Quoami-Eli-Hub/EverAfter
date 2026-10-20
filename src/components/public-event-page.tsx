@@ -5,6 +5,7 @@ import {EventMusic} from "@/components/event-music";
 import {SubmitButton} from "@/components/submit-button";
 import {InvitationCover} from "@/components/invitation-cover";
 import {invitationSettings} from "@/lib/invitation";
+import {getEventShare,eventShareOrigin} from "@/lib/event-share";
 import type {Metadata} from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -41,7 +42,19 @@ async function getEvent(slug:string,token?:string){
   return{music,event,sections,schedule,venues,albums,media:media.map(x=>({...x,url:urls.get(x.storage_path)??""})),documents:documents.map(x=>({...x,url:urls.get(x.storage_path)??""})),tributes};
 }
 
-export async function generateMetadata({params}:Props):Promise<Metadata>{const{slug}=await params;const supabase=await createClient();const{data:gate}=await supabase.rpc("get_event_gate",{p_slug:slug}).maybeSingle();if(!gate)return{title:"Event not found",robots:{index:false,follow:false}};return{title:`${gate.title} · EverAfter`,description:`Event details, programme, gallery and guest responses for ${gate.title}.`,robots:{index:gate.visibility==="public",follow:gate.visibility==="public"},alternates:{canonical:`/${slug}`}}}
+export async function generateMetadata({params}:Props):Promise<Metadata>{
+  const{slug}=await params;
+  const invitation=await getEventShare(slug);
+  if(!invitation)return{title:"Event not found",robots:{index:false,follow:false}};
+  const url=`${eventShareOrigin()}/${encodeURIComponent(slug)}`;
+  const image={url:`${url}/share-image`,width:1200,height:630,alt:`Invitation for ${invitation.title}`};
+  return{
+    title:`${invitation.title} · EverAfter`,description:invitation.description,
+    robots:{index:invitation.public,follow:invitation.public},alternates:{canonical:url},
+    openGraph:{type:"website",siteName:"EverAfter",url,title:invitation.title,description:invitation.description,images:[image]},
+    twitter:{card:"summary_large_image",title:invitation.title,description:invitation.description,images:[image.url]}
+  };
+}
 
 export async function EventPage({params,searchParams,demo=false}:Props&{demo?:boolean}){
   const{slug}=await params,query=await searchParams;const token=(await cookies()).get(eventAccessCookie(slug))?.value;const data=await getEvent(slug,token);
