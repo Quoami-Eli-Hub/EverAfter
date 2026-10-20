@@ -1,6 +1,7 @@
 import {createClient} from "@supabase/supabase-js";
 import type {Database} from "@/lib/database.types";
 import {invitationDate,invitationSettings} from "@/lib/invitation";
+import {createAdminClient} from "@/lib/supabase/server";
 
 // Sharing must never inherit an owner's session or a guest's access cookie.
 export async function getEventShare(slug:string){
@@ -12,8 +13,11 @@ export async function getEventShare(slug:string){
   if(!event)return null;
   const settings=invitationSettings(event.invitation_cover);
   const date=settings.date||invitationDate(event.event_date);
-  const{data:media}=await db.from("media").select("storage_path").eq("event_id",event.id).eq("is_public",true).order("sort_order").limit(1).maybeSingle();
-  const photo=media?(await db.storage.from("event-media").createSignedUrl(media.storage_path,300)).data?.signedUrl??null:null;
+  const{data:media}=await db.from("media").select("storage_path").eq("event_id",event.id).eq("is_public",true).order("sort_order").order("id").limit(1).maybeSingle();
+  // Only sign the public photo selected anonymously above, after checking that
+  // its event is published and public. Storage itself remains private.
+  const storage=process.env.SUPABASE_SECRET_KEY?createAdminClient().storage:db.storage;
+  const photo=media?(await storage.from("event-media").createSignedUrl(media.storage_path,300)).data?.signedUrl??null:null;
   const localPhoto=event.event_type!=="memorial"?(event.id===8?"/events/quoami-harry/hero.png":[1,5].includes(event.id)?"/showcase/wedding-hero.png":null):null;
   return{title:settings.names||event.title,description:`${date} · ${settings.message}`,date,photo,localPhoto,public:true};
 }
